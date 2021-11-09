@@ -103,21 +103,22 @@ contract APRWithPoolOracle is Ownable {
       IAlpacaConfig config = IAlpacaConfig(alpaca.config());
       uint256 borrowInterest = config.getInterestRate(alpaca.vaultDebtVal(), alpaca.totalToken() - alpaca.vaultDebtVal()) * 356 * 24 * 3600;
       uint256 lendingApr = borrowInterest * alpaca.vaultDebtVal() / alpaca.totalToken() * (100 - 19) / 100;
-      address fairLaunchAddr = config.getFairLaunchAddr();
-      IAlpacaFairLaunch fairLaunch = IAlpacaFairLaunch(fairLaunchAddr);
-      uint256 tokenIndex = alpacaTokenIndex[token];
-      uint256 stakingApr = 0;
-      {
-        (, uint256 allocPoint, , ,) = fairLaunch.poolInfo(tokenIndex);
-        uint256 alpacaTokenPrice = priceCheck(fairLaunch.alpaca(), usdtTokenAddress, 1e18);
-        uint256 tokenPrice = priceCheck(alpaca.token(), usdtTokenAddress, 1e18);
-        uint256 perBlock = fairLaunch.alpacaPerBlock();
-        uint256 totalAllocPoint = fairLaunch.totalAllocPoint();
-        uint256 debtShareToVal = alpaca.debtShareToVal(1e4);
-        stakingApr = perBlock * allocPoint / totalAllocPoint * 20 * 60 * 24 * 365 / 1e18 * alpacaTokenPrice / (alpaca.balanceOf(fairLaunchAddr) / 1e18);
-        stakingApr = stakingApr.mul(1e4).div(debtShareToVal).mul(1e18).div(tokenPrice);
-      }
-      uint256 apr = lendingApr + stakingApr;
+      // address fairLaunchAddr = config.getFairLaunchAddr();
+      // IAlpacaFairLaunch fairLaunch = IAlpacaFairLaunch(fairLaunchAddr);
+      // uint256 tokenIndex = alpacaTokenIndex[token];
+      // uint256 stakingApr = 0;
+      // {
+      //   (, uint256 allocPoint, , ,) = fairLaunch.poolInfo(tokenIndex);
+      //   uint256 alpacaTokenPrice = priceCheck(fairLaunch.alpaca(), usdtTokenAddress, 1e18);
+      //   uint256 tokenPrice = priceCheck(alpaca.token(), usdtTokenAddress, 1e18);
+      //   uint256 perBlock = fairLaunch.alpacaPerBlock();
+      //   uint256 totalAllocPoint = fairLaunch.totalAllocPoint();
+      //   uint256 debtShareToVal = alpaca.debtShareToVal(1e4);
+      //   stakingApr = perBlock * allocPoint / totalAllocPoint * 20 * 60 * 24 * 365 / 1e18 * alpacaTokenPrice / (alpaca.balanceOf(fairLaunchAddr) / 1e18);
+      //   stakingApr = stakingApr.mul(1e4).div(debtShareToVal).mul(1e18).div(tokenPrice);
+      // }
+      // uint256 apr = lendingApr + stakingApr;
+      uint256 apr = lendingApr;
       return 
         ABDKMath64x64.mulu(
           ABDKMath64x64.sub(
@@ -130,27 +131,27 @@ contract APRWithPoolOracle is Ownable {
   }
 
   
-  function priceCheck(address start, address end, uint256 _amount) public view returns (uint256) {
-    if (_amount == 0) {
-      return 0;
-    }
+  // function priceCheck(address start, address end, uint256 _amount) public view returns (uint256) {
+  //   if (_amount == 0) {
+  //     return 0;
+  //   }
 
-    address[] memory path;
-    if (start == wbnb) {
-      path = new address[](2);
-      path[0] = wbnb;
-      path[1] = end;
-    } else {
-      path = new address[](3);
-      path[0] = start;
-      path[1] = wbnb;
-      path[2] = end;
-    }
+  //   address[] memory path;
+  //   if (start == wbnb) {
+  //     path = new address[](2);
+  //     path[0] = wbnb;
+  //     path[1] = end;
+  //   } else {
+  //     path = new address[](3);
+  //     path[0] = start;
+  //     path[1] = wbnb;
+  //     path[2] = end;
+  //   }
 
-    uint256[] memory amounts = IUniswapV2Router02(uniswapRouter).getAmountsOut(_amount, path);
-    // [0x8f0528ce5ef7b51152a59745befdd91d97091d2f, 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c, 0x55d398326f99059fF775485246999027B3197955]
-    return amounts[amounts.length - 1];
-  }
+  //   uint256[] memory amounts = IUniswapV2Router02(uniswapRouter).getAmountsOut(_amount, path);
+  //   // [0x8f0528ce5ef7b51152a59745befdd91d97091d2f, 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c, 0x55d398326f99059fF775485246999027B3197955]
+  //   return amounts[amounts.length - 1];
+  // }
 
   function setAlpacaTokenIndex(address _token, uint256 _index) public onlyOwner{
     alpacaTokenIndex[_token] = _index;
